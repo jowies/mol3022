@@ -1,10 +1,11 @@
 import 'babel-polyfill';
 import React from 'react';
 import ReactDom from 'react-dom';
+import Main from './Main';
 
 const App = () => {
   ReactDom.render(
-    <p>Hello world</p>,
+    <Main />,
     document.getElementById('root'),
   );
 };

@@ -12,14 +12,14 @@ module.exports = {
       impliedStrict: true,
       jsx: true,
       arrowFunction: true
-     }
+    }
   },
   "plugins": ["react"],
   "env": {
     "es6": true,
     "browser": true
   },
- "rules":{
+  "rules": {
     "react/jsx-filename-extension": [WARN, { "extensions": [".js", ".jsx"] }],
   }
 };

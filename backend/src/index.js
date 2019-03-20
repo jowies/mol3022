@@ -48,7 +48,8 @@ router.get('/calculate', async (ctx) => {
   const PWMs = await getMatricesAsPWD(matricesQuery);
   const sequences = sequencesQuery.split(',');
 
-  const probabilitySequences = sequences.map(seq => ({ sequence: seq, prob: getProbabilitySequence(seq, PWMs) }));
+  const probabilitySequences = sequences
+    .map(seq => ({ sequence: seq, prob: getProbabilitySequence(seq, PWMs) }));
   ctx.body = { probabilitySequences, matrices: PWMs.map(x => x.info) };
 });
 
