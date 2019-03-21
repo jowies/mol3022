@@ -1,4 +1,5 @@
 import Deque from 'collections/deque';
+import fs from 'fs';
 
 const ahoCorasick = () => ({
   G: {},
@@ -16,6 +17,14 @@ const assignAndAdd = (dict, key, value) => {
   } else {
     dict[key] = [value];
   }
+};
+
+const getAndReturn = (dict, key) => {
+  if (dict[key]) {
+    return dict[key];
+  }
+  dict[key] = [];
+  return dict[key];
 };
 
 const addIterableAndReturn = (dict, state, w) => {
@@ -38,9 +47,10 @@ const addWord = (word, ac) => {
 const isInG = (t, w, G) => G.hasOwnProperty(`${t},${w}`);
 
 const getKeyOfF = (F, key) => {
-  if (F[key]) {
+  if (F[key] || F[key] === 0) {
     return F[key];
   }
+  F[key] = 0;
   return 0;
 };
 
@@ -54,10 +64,14 @@ const getKeyOfO = (O, key) => {
 
 const construct = (state, ac, w, queue) => {
   let t = getKeyOfF(ac.F, state);
+  console.log(!isInG(t, w, ac.G));
+  console.log(`t${t}`);
+  console.log(w);
 
   while (t && !isInG(t, w, ac.G)) {
     t = getKeyOfF(ac.F, t);
   }
+
   const s = ac.G[`${state},${w}`];
   ac.F[s] = isInG(t, w, ac.G) ? ac.G[`${t},${w}`] : 0;
   ac.O[s] = getKeyOfO(ac.O, s).concat(getKeyOfO(ac.O, ac.F[s]));
@@ -68,19 +82,17 @@ const buildFSM = (ac) => {
   const queue = Deque(ac.W['0'].map(w => ac.G[`${0},${w}`]));
 
   while (queue.one()) {
-    const state = queue.shift();
-    if (ac.W[state.toString()]) {
-      ac.W[state.toString()].forEach((w) => {
-        construct(state.toString(), ac, w, queue);
-      });
-    }
+    const state = queue.shift().toString();
+    getAndReturn(ac.W, state).forEach((w) => {
+      construct(state, ac, w, queue);
+    });
   }
 };
 
 const search = (text, ac) => {
   let state = 0;
   const x = [];
-  for (let i = 0; i < text.length; ++i) {
+  for (let i = 0; i < text.length; i += 1) {
     const t = text[i];
     while (state && !isInG(state, t, ac.G)) {
       state = ac.F[state.toString()];
@@ -119,6 +131,7 @@ const hasPotential = (word, matrix, threshold) => {
 const generateWords = (matrix) => {
   const tempWords = [];
   const minThreshold = calculateMinimumThreshold(matrix);
+
   for (let i = 0; i < matrix.A.length; i += 1) {
     tempWords[i] = [];
     if (i === 0) {
@@ -132,6 +145,7 @@ const generateWords = (matrix) => {
       tempWords[i - 1].forEach((x) => {
         Object.keys(matrix).forEach((z) => {
           const nword = x + z;
+
           if (hasPotential(nword, matrix, minThreshold)) {
             tempWords[i].push(nword);
           }
@@ -148,19 +162,38 @@ const addWords = (words, ac) => {
   });
 };
 
+const d = ahoCorasick();
+addWord('bar', d);
+addWord('abra', d);
+addWord('ass', d);
+buildFSM(d);
+
+const write = (arr) => {
+  const stream = fs.createWriteStream('my_file.txt');
+  stream.once('open', (fd) => {
+    arr.forEach((x) => {
+      stream.write(`${x}\n`);
+    });
+    stream.end();
+  });
+};
+
+
 const solve = (sequence, matrix) => {
   const AC = ahoCorasick();
   const words = generateWords(matrix);
-  console.log(words);
+  write(words);
   addWords(words, AC);
+
+
   buildFSM(AC);
   const result = search(sequence, AC);
-  console.log(result);
+  console.log(result.length);
   return result.map(x => ({ index: x.index, word: x.words[0].word }));
 };
 
 const solveFor = (sequences, matrices) => sequences.map(s => ({
-  matrices: matrices.map(x => ({ id: x.info.matrix_id, positions: solve(s, x.pwm) })),
+  result: matrices.map(x => ({ id: x.info.matrix_id, positions: solve(s, x.pwm) })),
 }));
 
 export { solveFor };

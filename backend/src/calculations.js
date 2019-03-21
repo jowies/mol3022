@@ -23,11 +23,16 @@ const calculateTFProbabilities = (sequence, matrix) => {
   const sequenceProbability = [];
   for (let i = 0; i < sequenceLength - matrixLength; i += 1) {
     let totalProb = 0;
+    let word = '';
     for (let j = 0; j < matrixLength; j += 1) {
       totalProb += matrix[sequence[i + j].toUpperCase()][j];
+      word += sequence[i + j];
     }
-    sequenceProbability[i] = totalProb;
+    if (totalProb > 0) {
+      sequenceProbability.push({ index: i, word });
+    }
   }
+  console.log(sequenceProbability.length);
   return sequenceProbability;
 };
 

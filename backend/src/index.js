@@ -37,7 +37,7 @@ const getMatricesAsPWD = async (matricesQuery) => {
 
 const getProbabilitySequence = (sequence, PWMs) => PWMs
   .map(matrix => ({
-    sequence: calculateTFProbabilities(sequence, matrix.pwm),
+    positions: calculateTFProbabilities(sequence, matrix.pwm),
     id: matrix.info.matrix_id,
   }));
 
@@ -46,21 +46,32 @@ router.post('/calculate', async (ctx) => {
   const matricesQuery = ctx.request.body.matrices;
   const { type } = ctx.request.body;
 
-  const PWMs = await getMatricesAsPWD(matricesQuery);
+  // const PWMs = await getMatricesAsPWD(matricesQuery);
+  const PWMs = [{
+    pwm: transformPFMtoPWM({
+      A: [1036, 1036, 1036, 0, 620, 198, 0, 0, 0],
+      C: [0, 0, 0, 495, 0, 185, 1036, 0, 0],
+      G: [0, 0, 0, 0, 416, 402, 0, 0, 1036],
+      T: [0, 0, 0, 541, 0, 251, 0, 1036, 0],
+    }),
+    info: {
+      matrix_id: 'oiasjd',
+    },
+  }];
   const sequences = sequencesQuery;
   if (type === 'na') {
-    const probabilitySequences = sequences
-      .map(seq => ({ sequence: seq, prob: getProbabilitySequence(seq, PWMs) }));
-    ctx.body = { probabilitySequences, matrices: PWMs.map(x => x.info) };
+    const na = sequences
+      .map(seq => ({ sequence: seq, result: getProbabilitySequence(seq, PWMs) }));
+    ctx.body = { na, matrices: PWMs.map(x => x.info) };
   } else if (type === 'ac') {
-    ctx.body = { startingPoints: solveFor(sequences, PWMs), matrices: PWMs.map(x => x.info) };
+    ctx.body = { ac: solveFor(sequences, PWMs), result: PWMs.map(x => x.info) };
   } else {
-    const probabilitySequences = sequences
-      .map(seq => ({ sequence: seq, prob: getProbabilitySequence(seq, PWMs) }));
+    const na = sequences
+      .map(seq => ({ sequence: seq, result: getProbabilitySequence(seq, PWMs) }));
     ctx.body = {
-      probabilitySequences,
-      startingPoints: solveFor(sequences, PWMs),
-      matrices: PWMs.map(x => x.info),
+      na,
+      ac: solveFor(sequences, PWMs),
+      result: PWMs.map(x => x.info),
     };
   }
 });
