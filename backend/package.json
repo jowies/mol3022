@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "npm run webserver",
-    "webserver": "nodemon src/aho-corasick.js --exec babel-node",
+    "webserver": "nodemon src/index.js --exec babel-node",
+    "aho": "nodemon src/aho-corasick.js --exec babel-node",
     "build": "babel src -d dist",
     "serve": "node dist/index.js"
   },

@@ -28,11 +28,11 @@ const addIterableAndReturn = (dict, state, w) => {
 
 const addWord = (word, ac) => {
   let state = 0;
-  word.forEach((w) => {
-    assignAndAdd(ac.W, state.toString(), w);
-    state = addIterableAndReturn(ac.G, state, w);
-  });
-  assignAndAdd(ac.O, state.toString(), word.join(''));
+  for (let i = 0; i < word.length; i += 1) {
+    assignAndAdd(ac.W, state.toString(), word[i]);
+    state = addIterableAndReturn(ac.G, state, word[i]);
+  }
+  assignAndAdd(ac.O, state.toString(), { word, value: 1 });
 };
 
 const isInG = (t, w, G) => G.hasOwnProperty(`${t},${w}`);
@@ -53,7 +53,6 @@ const getKeyOfO = (O, key) => {
 
 
 const construct = (state, ac, w, queue) => {
-  console.log(state);
   let t = getKeyOfF(ac.F, state);
 
   while (t && !isInG(t, w, ac.G)) {
@@ -80,7 +79,7 @@ const buildFSM = (ac) => {
 
 const search = (text, ac) => {
   let state = 0;
-  const split = text.split('');
+  const x = [];
   for (let i = 0; i < text.length; ++i) {
     const t = text[i];
     while (state && !isInG(state, t, ac.G)) {
@@ -88,20 +87,79 @@ const search = (text, ac) => {
     }
     state = isInG(state, t, ac.G) ? ac.G[`${state},${t}`] : 0;
     if (ac.O[state.toString()] && ac.O[state.toString()].length !== 0) {
-      console.log(i);
-      console.log(ac.O[state.toString()]);
+      x.push({ ...{ index: i }, ...{ words: ac.O[state.toString()] } });
     }
   }
+  return x;
 };
 
-const AC = ahoCorasick();
-addWord('bar'.split(''), AC);
-addWord('ara'.split(''), AC);
-addWord('bara'.split(''), AC);
-addWord('barbara'.split(''), AC);
-console.log(AC);
-buildFSM(AC);
+const calculateMinimumThreshold = (matrix) => {
+  const threshold = 0;
+  const arr = [threshold];
+  for (let i = matrix.A.length - 1; i >= 0; i -= 1) {
+    let largest = 0;
+    Object.keys(matrix).forEach((x) => {
+      if (largest < matrix[x][i]) largest = matrix[x][i];
+    });
+    arr[matrix.A.length - i] = arr[matrix.A.length - i - 1] - largest;
+  }
+  return arr.reverse();
+};
 
-console.log(AC);
 
-search('barbarian barbara said: barabum', AC);
+const hasPotential = (word, matrix, threshold) => {
+  let total = 0;
+  for (let i = 0; i < word.length; i += 1) {
+    total = parseFloat(matrix[word[i]][i], 10) + total;
+  }
+  return threshold[word.length - 1] < total;
+};
+
+
+const generateWords = (matrix) => {
+  const tempWords = [];
+  const minThreshold = calculateMinimumThreshold(matrix);
+  for (let i = 0; i < matrix.A.length; i += 1) {
+    tempWords[i] = [];
+    if (i === 0) {
+      Object.keys(matrix).forEach((x) => {
+        if (hasPotential(x, matrix, minThreshold)) {
+          console.log('runs');
+          tempWords[i].push(x);
+        }
+      });
+    } else {
+      tempWords[i] = [];
+      tempWords[i - 1].forEach((x) => {
+        Object.keys(matrix).forEach((z) => {
+          const nword = x + z;
+          if (hasPotential(nword, matrix, minThreshold)) {
+            tempWords[i].push(nword);
+          }
+        });
+      });
+    }
+  }
+  return tempWords[tempWords.length - 1];
+};
+
+const addWords = (words, ac) => {
+  words.forEach((x) => {
+    addWord(x, ac);
+  });
+};
+
+const solve = (sequence, matrix) => {
+  const AC = ahoCorasick();
+  const words = generateWords(matrix);
+  addWords(words, AC);
+  buildFSM(AC);
+  const result = search(sequence, AC);
+  return result;
+};
+
+const solveFor = (sequences, matrices) => sequences.map(s => ({
+  matrices: matrices.map(x => ({ id: x.info.matrix_id, positions: solve(s, x.pwm) })),
+}));
+
+export { solveFor };

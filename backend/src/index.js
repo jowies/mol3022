@@ -1,10 +1,13 @@
 import axios from 'axios';
 import Koa from 'koa';
 import Router from 'koa-router';
+import parser from 'koa-bodyparser';
+import { solveFor } from './aho-corasick';
 
 import { calculateTFProbabilities, transformPFMtoPWM } from './calculations';
 
 const app = new Koa();
+app.use(parser());
 
 const router = new Router();
 
@@ -13,7 +16,6 @@ let matrices = [];
 const getMatrices = async () => {
   const response = (await axios.get('http://jaspar.genereg.net/api/v1/matrix?format=json&page_size=2404'));
   matrices = response.data.results;
-  console.log(matrices[0]);
 };
 
 const getMatrix = async (id) => {
@@ -22,13 +24,11 @@ const getMatrix = async (id) => {
 };
 
 router.get('/matrices', async (ctx) => {
-  console.log('132');
   ctx.body = matrices;
 });
 
 const getMatricesAsPWD = async (matricesQuery) => {
-  console.log(matricesQuery);
-  const matrixIDs = matricesQuery.split(',');
+  const matrixIDs = matricesQuery;
   const requestedMatrices = await Promise.all(matrixIDs.map(async id => getMatrix(id)));
   return requestedMatrices.map((matrix, i) => (
     { pwm: transformPFMtoPWM(matrix.pfm), info: requestedMatrices[i] }
@@ -41,16 +41,28 @@ const getProbabilitySequence = (sequence, PWMs) => PWMs
     id: matrix.info.matrix_id,
   }));
 
-router.get('/calculate', async (ctx) => {
-  const sequencesQuery = ctx.query.sequences;
-  const matricesQuery = ctx.query.matrices;
+router.post('/calculate', async (ctx) => {
+  const sequencesQuery = ctx.request.body.sequences;
+  const matricesQuery = ctx.request.body.matrices;
+  const { type } = ctx.request.body;
 
   const PWMs = await getMatricesAsPWD(matricesQuery);
-  const sequences = sequencesQuery.split(',');
-
-  const probabilitySequences = sequences
-    .map(seq => ({ sequence: seq, prob: getProbabilitySequence(seq, PWMs) }));
-  ctx.body = { probabilitySequences, matrices: PWMs.map(x => x.info) };
+  const sequences = sequencesQuery;
+  if (type === 'na') {
+    const probabilitySequences = sequences
+      .map(seq => ({ sequence: seq, prob: getProbabilitySequence(seq, PWMs) }));
+    ctx.body = { probabilitySequences, matrices: PWMs.map(x => x.info) };
+  } else if (type === 'ac') {
+    ctx.body = { startingPoints: solveFor(sequences, PWMs), matrices: PWMs.map(x => x.info) };
+  } else {
+    const probabilitySequences = sequences
+      .map(seq => ({ sequence: seq, prob: getProbabilitySequence(seq, PWMs) }));
+    ctx.body = {
+      probabilitySequences,
+      startingPoints: solveFor(sequences, PWMs),
+      matrices: PWMs.map(x => x.info),
+    };
+  }
 });
 
 app.use(router.routes());
