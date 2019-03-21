@@ -124,7 +124,6 @@ const generateWords = (matrix) => {
     if (i === 0) {
       Object.keys(matrix).forEach((x) => {
         if (hasPotential(x, matrix, minThreshold)) {
-          console.log('runs');
           tempWords[i].push(x);
         }
       });
@@ -152,10 +151,12 @@ const addWords = (words, ac) => {
 const solve = (sequence, matrix) => {
   const AC = ahoCorasick();
   const words = generateWords(matrix);
+  console.log(words);
   addWords(words, AC);
   buildFSM(AC);
   const result = search(sequence, AC);
-  return result;
+  console.log(result);
+  return result.map(x => ({ index: x.index, word: x.words[0].word }));
 };
 
 const solveFor = (sequences, matrices) => sequences.map(s => ({
