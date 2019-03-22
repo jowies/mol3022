@@ -22,7 +22,7 @@ const input = {
 
 class Matrices extends Component {
   async componentDidMount() {
-    const matrices = await axios.get('http://localhost:3000/matrices');
+    const matrices = await axios.get('https://mol-api.nerdekos.no/matrices');
     console.log(matrices);
     this.props.change(matrices.data);
   }

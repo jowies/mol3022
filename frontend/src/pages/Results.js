@@ -28,7 +28,7 @@ class Results extends Component {
 
   async componentDidMount() {
     try {
-      const response = await axios.post('http://localhost:3000/calculate', {
+      const response = await axios.post('https://mol-api.nerdekos.no/calculate', {
         type: this.props.type,
         matrices: [this.props.matrix],
         sequences: [this.props.sequence],
