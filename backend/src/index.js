@@ -48,8 +48,8 @@ router.post('/calculate', async (ctx) => {
   const sequencesQuery = ctx.request.body.sequences;
   const matricesQuery = ctx.request.body.matrices;
   const { type } = ctx.request.body;
-  // const PWMs = await getMatricesAsPWD(matricesQuery);
-  const PWMs = [{
+  const PWMs = await getMatricesAsPWD(matricesQuery);
+  /* const PWMs = [{
     pwm: transformPFMtoPWM({
       A: [1036, 1036, 1036, 0, 620, 198, 0, 0, 0],
       C: [0, 0, 0, 495, 0, 185, 1036, 0, 0],
@@ -59,7 +59,7 @@ router.post('/calculate', async (ctx) => {
     info: {
       matrix_id: 'oiasjd',
     },
-  }];
+  }]; */
   const sequences = sequencesQuery;
   if (type === 'na') {
     const na = sequences
@@ -68,11 +68,13 @@ router.post('/calculate', async (ctx) => {
   } else if (type === 'ac') {
     ctx.body = { ac: solveFor(sequences, PWMs), result: PWMs.map(x => x.info) };
   } else {
+    const nas = new Date();
     const na = sequences
       .map(seq => ({ sequence: seq, result: getProbabilitySequence(seq, PWMs) }));
+    const ac = solveFor(sequences, PWMs);
     ctx.body = {
       na,
-      ac: solveFor(sequences, PWMs),
+      ac,
       result: PWMs.map(x => x.info),
     };
   }

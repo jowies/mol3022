@@ -2,7 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 
-const env = process.env.NODE_ENV
+const env = process.env.NODE_ENV;
 
 module.exports = {
   entry: {
@@ -37,7 +37,7 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
-      template: 'index.html'
-    })
-  ]
+      template: 'index.html',
+    }),
+  ],
 };
