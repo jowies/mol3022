@@ -2,12 +2,15 @@ import axios from 'axios';
 import Koa from 'koa';
 import Router from 'koa-router';
 import parser from 'koa-bodyparser';
+import cors from '@koa/cors';
+
 import { solveFor } from './aho-corasick';
 
 import { calculateTFProbabilities, transformPFMtoPWM } from './calculations';
 
 const app = new Koa();
 app.use(parser());
+app.use(cors());
 
 const router = new Router();
 
@@ -45,7 +48,6 @@ router.post('/calculate', async (ctx) => {
   const sequencesQuery = ctx.request.body.sequences;
   const matricesQuery = ctx.request.body.matrices;
   const { type } = ctx.request.body;
-
   // const PWMs = await getMatricesAsPWD(matricesQuery);
   const PWMs = [{
     pwm: transformPFMtoPWM({

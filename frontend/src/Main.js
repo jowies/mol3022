@@ -2,22 +2,12 @@ import React, { Component } from 'react';
 import Matrices from './pages/Matrices';
 import Sequence from './pages/Sequence';
 
-const pages = (page, change) => {
-  switch (page) {
-    case 'matrices':
-      return <Matrices />;
-    case 'sequence':
-      return <Sequence />;
-    default:
-      return <Sequence />;
-  }
-};
-
 class Main extends Component {
   state = {
     page: 'matrices',
     sequence: '',
     sequenceError: '',
+    matrices: [],
   };
 
   changeSequence = (e) => {
@@ -27,13 +17,29 @@ class Main extends Component {
     this.setState({ sequence: e.target.value });
   }
 
+  changeMatrices = (matrices) => {
+    this.setState({ matrices });
+  }
+
 
   changePage = page => () => {
     this.setState({ page });
   }
 
+  pages = () => {
+    switch (this.state.page) {
+      case 'matrices':
+        return <Matrices matrices={this.state.matrices} change={this.changeMatrices} />;
+      case 'sequence':
+        return <Sequence />;
+      default:
+        return <Sequence />;
+    }
+  };
+
   render() {
-    const { page } = this.state;
-    return pages(page, this.changePage);
+    return this.pages();
   }
 }
+
+export default Main;

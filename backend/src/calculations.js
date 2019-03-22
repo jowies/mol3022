@@ -32,7 +32,6 @@ const calculateTFProbabilities = (sequence, matrix) => {
       sequenceProbability.push({ index: i, word });
     }
   }
-  console.log(sequenceProbability.length);
   return sequenceProbability;
 };
 

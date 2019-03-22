@@ -64,9 +64,6 @@ const getKeyOfO = (O, key) => {
 
 const construct = (state, ac, w, queue) => {
   let t = getKeyOfF(ac.F, state);
-  console.log(!isInG(t, w, ac.G));
-  console.log(`t${t}`);
-  console.log(w);
 
   while (t && !isInG(t, w, ac.G)) {
     t = getKeyOfF(ac.F, t);
@@ -106,7 +103,7 @@ const search = (text, ac) => {
 };
 
 const calculateMinimumThreshold = (matrix) => {
-  const threshold = 0;
+  const threshold = 1;
   const arr = [threshold];
   for (let i = matrix.A.length - 1; i >= 0; i -= 1) {
     let largest = 0;
@@ -162,38 +159,18 @@ const addWords = (words, ac) => {
   });
 };
 
-const d = ahoCorasick();
-addWord('bar', d);
-addWord('abra', d);
-addWord('ass', d);
-buildFSM(d);
-
-const write = (arr) => {
-  const stream = fs.createWriteStream('my_file.txt');
-  stream.once('open', (fd) => {
-    arr.forEach((x) => {
-      stream.write(`${x}\n`);
-    });
-    stream.end();
-  });
-};
-
 
 const solve = (sequence, matrix) => {
   const AC = ahoCorasick();
   const words = generateWords(matrix);
-  write(words);
   addWords(words, AC);
-
-
   buildFSM(AC);
   const result = search(sequence, AC);
-  console.log(result.length);
-  return result.map(x => ({ index: x.index, word: x.words[0].word }));
+  return result.map(x => ({ index: x.index - matrix.A.length + 1, word: x.words[0].word }));
 };
 
 const solveFor = (sequences, matrices) => sequences.map(s => ({
   result: matrices.map(x => ({ id: x.info.matrix_id, positions: solve(s, x.pwm) })),
 }));
 
-export { solveFor };
+export { solveFor, solve };

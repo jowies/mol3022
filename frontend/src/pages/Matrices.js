@@ -1,15 +1,17 @@
 import React, { Component } from 'react';
-import axios from axios;
+import axios from 'axios';
 
 class Matrices extends Component {
-  state = { matrices: [] };
-
   async componentDidMount() {
     const matrices = await axios.get('http://localhost:3000/matrices');
-    this.setState({ matrices })
+    console.log(matrices);
+    this.props.change(matrices.data);
   }
 
   render() {
-    return this.state.matrices.map(matrix => <Matrix matrix={matrix} />);
+    console.log(this.props.matrices);
+    return this.props.matrices.map(matrix => <Matrix matrix={matrix} />);
   }
 }
+
+export default Matrices;
